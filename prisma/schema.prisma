@@ -17,4 +17,16 @@ model ApiKeys {
   gcalendarKey  String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  ownerId     String
+  dueDate     DateTime
+  status      String   @default("todo")
+  priority    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 } 
