@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import { useSession } from "next-auth/react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,6 +31,7 @@ const formSchema = z.object({
 
 export function ApiKeysForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { data: session } = useSession()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,15 +44,53 @@ export function ApiKeysForm() {
     },
   })
 
+  useEffect(() => {
+    // Load existing API keys if they exist
+    const loadApiKeys = async () => {
+      if (session?.user?.id) {
+        try {
+          const response = await fetch(`/api/settings?userId=${session.user.id}`)
+          const data = await response.json()
+          
+          if (data.keys) {
+            form.reset(data.keys)
+          }
+        } catch (error) {
+          console.error('Error loading API keys:', error)
+        }
+      }
+    }
+
+    loadApiKeys()
+  }, [session?.user?.id, form])
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!session?.user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to save API keys.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      // In a real implementation, this would call the API
-      console.log("Saving API keys:", values)
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: session.user.id,
+          apiKeys: values,
+        }),
+      })
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      if (!response.ok) {
+        throw new Error('Failed to save API keys')
+      }
 
       toast({
         title: "Settings saved",
