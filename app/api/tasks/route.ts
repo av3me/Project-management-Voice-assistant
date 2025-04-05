@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import { db } from "@/lib/db"
 
 export async function GET() {
   try {
-    const tasks = await prisma.task.findMany({
+    const tasks = await db.task.findMany({
       orderBy: {
         createdAt: "desc",
       },
@@ -19,13 +17,14 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const task = await prisma.task.create({
+    const task = await db.task.create({
       data: {
         title: body.title,
         description: body.description,
         ownerId: body.ownerId,
         dueDate: body.dueDate,
         priority: body.priority,
+        status: "todo",
       },
     })
     return NextResponse.json(task)
