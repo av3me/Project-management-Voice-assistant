@@ -12,14 +12,22 @@ type Task = {
   id: string
   title: string
   description: string | null
+  ownerId: string
   dueDate: string
-  status: "todo" | "in-progress" | "done"
-  priority: "low" | "medium" | "high"
-  owner: {
-    name: string
-    initials: string
-  }
+  status: string
+  priority: string
+  createdAt: string
+  updatedAt: string
 }
+
+// Mock team members data (same as in task-form.tsx)
+const teamMembers = [
+  { id: "1", name: "Alice Smith" },
+  { id: "2", name: "Bob Johnson" },
+  { id: "3", name: "Charlie Davis" },
+  { id: "4", name: "Dave Wilson" },
+  { id: "5", name: "Eve Brown" },
+]
 
 export function TaskList({
   limit = 10,
@@ -72,6 +80,11 @@ export function TaskList({
         {limitedTasks.map((task) => {
           const dueDate = new Date(task.dueDate)
           const isOverdue = dueDate < today && task.status !== "done"
+          const owner = teamMembers.find((member) => member.id === task.ownerId) || { name: "Unknown", id: "0" }
+          const initials = owner.name
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
 
           return (
             <div
@@ -82,7 +95,7 @@ export function TaskList({
             >
               <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="text-xs">{task.owner.initials}</AvatarFallback>
+                  <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                 </Avatar>
                 <div>
                   <div className="font-medium flex items-center">
@@ -94,11 +107,16 @@ export function TaskList({
                   </div>
                 </div>
               </div>
-              <Badge
-                variant={task.status === "done" ? "outline" : task.status === "in-progress" ? "secondary" : "default"}
-              >
-                {task.status === "todo" ? "To Do" : task.status === "in-progress" ? "In Progress" : "Done"}
-              </Badge>
+              <div className="flex items-center space-x-2">
+                <Badge variant={task.priority === "high" ? "destructive" : task.priority === "medium" ? "secondary" : "outline"}>
+                  {task.priority}
+                </Badge>
+                <Badge
+                  variant={task.status === "done" ? "outline" : task.status === "in-progress" ? "secondary" : "default"}
+                >
+                  {task.status === "todo" ? "To Do" : task.status === "in-progress" ? "In Progress" : "Done"}
+                </Badge>
+              </div>
             </div>
           )
         })}
