@@ -1,16 +1,16 @@
 {
   "version": 2,
   "routes": [{ "src": "/api/(.*)", "dest": "api/app.py" }],
-  "buildCommand": "pnpm run build",
-  "installCommand": "pnpm install",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
   "framework": "nextjs",
   "builds": [
     {
       "src": "package.json",
       "use": "@vercel/next",
       "config": {
-        "installCommand": "pnpm install",
-        "buildCommand": "pnpm run build"
+        "installCommand": "npm install",
+        "buildCommand": "npm run build"
       }
     }
   ],
