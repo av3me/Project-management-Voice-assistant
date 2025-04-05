@@ -21,14 +21,16 @@ const formSchema = z.object({
     message: "Title must be at least 3 characters.",
   }),
   description: z.string().optional(),
-  owner: z.string({
+  ownerId: z.string({
     required_error: "Please select a task owner.",
   }),
   dueDate: z.date({
     required_error: "Please select a due date.",
   }),
-  priority: z.string().optional(),
+  priority: z.enum(["low", "medium", "high"]).default("medium"),
 })
+
+type FormValues = z.infer<typeof formSchema>
 
 // Mock team members data
 const teamMembers = [
@@ -42,8 +44,8 @@ const teamMembers = [
 export function TaskForm({ onSuccess }: { onSuccess?: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       title: "",
       description: "",
@@ -51,15 +53,21 @@ export function TaskForm({ onSuccess }: { onSuccess?: () => void }) {
     },
   })
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: FormValues) {
     setIsSubmitting(true)
 
     try {
-      // In a real implementation, this would call the API
-      console.log("Creating task:", values)
+      const response = await fetch("/api/tasks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      })
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      if (!response.ok) {
+        throw new Error("Failed to create task")
+      }
 
       toast({
         title: "Task created",
@@ -83,7 +91,7 @@ export function TaskForm({ onSuccess }: { onSuccess?: () => void }) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
-          control={form.control}
+          control={form.control as any}
           name="title"
           render={({ field }) => (
             <FormItem>
@@ -97,7 +105,7 @@ export function TaskForm({ onSuccess }: { onSuccess?: () => void }) {
         />
 
         <FormField
-          control={form.control}
+          control={form.control as any}
           name="description"
           render={({ field }) => (
             <FormItem>
@@ -112,8 +120,8 @@ export function TaskForm({ onSuccess }: { onSuccess?: () => void }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
-            control={form.control}
-            name="owner"
+            control={form.control as any}
+            name="ownerId"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Assign To</FormLabel>
@@ -137,7 +145,7 @@ export function TaskForm({ onSuccess }: { onSuccess?: () => void }) {
           />
 
           <FormField
-            control={form.control}
+            control={form.control as any}
             name="dueDate"
             render={({ field }) => (
               <FormItem className="flex flex-col">
@@ -171,7 +179,7 @@ export function TaskForm({ onSuccess }: { onSuccess?: () => void }) {
         </div>
 
         <FormField
-          control={form.control}
+          control={form.control as any}
           name="priority"
           render={({ field }) => (
             <FormItem>

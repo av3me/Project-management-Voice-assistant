@@ -11,12 +11,14 @@ import Link from "next/link"
 type Task = {
   id: string
   title: string
+  description: string | null
+  dueDate: string
+  status: "todo" | "in-progress" | "done"
+  priority: "low" | "medium" | "high"
   owner: {
     name: string
     initials: string
   }
-  dueDate: string
-  status: "todo" | "in-progress" | "done"
 }
 
 export function TaskList({
@@ -30,48 +32,20 @@ export function TaskList({
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // In a real implementation, this would fetch from the API
-    // For now, we'll use mock data
-    setTimeout(() => {
-      setTasks([
-        {
-          id: "1",
-          title: "Prepare Q1 Report",
-          owner: { name: "Alice Smith", initials: "AS" },
-          dueDate: "2025-04-10",
-          status: "in-progress",
-        },
-        {
-          id: "2",
-          title: "Update client presentation",
-          owner: { name: "Bob Johnson", initials: "BJ" },
-          dueDate: "2025-04-07",
-          status: "todo",
-        },
-        {
-          id: "3",
-          title: "Review marketing materials",
-          owner: { name: "Charlie Davis", initials: "CD" },
-          dueDate: "2025-04-05",
-          status: "todo",
-        },
-        {
-          id: "4",
-          title: "Finalize budget proposal",
-          owner: { name: "Dave Wilson", initials: "DW" },
-          dueDate: "2025-04-12",
-          status: "todo",
-        },
-        {
-          id: "5",
-          title: "Schedule client meeting",
-          owner: { name: "Eve Brown", initials: "EB" },
-          dueDate: "2025-04-09",
-          status: "done",
-        },
-      ])
-      setLoading(false)
-    }, 500)
+    const fetchTasks = async () => {
+      try {
+        const response = await fetch("/api/tasks")
+        if (!response.ok) throw new Error("Failed to fetch tasks")
+        const data = await response.json()
+        setTasks(data)
+      } catch (error) {
+        console.error("Error fetching tasks:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTasks()
   }, [])
 
   if (loading) {
