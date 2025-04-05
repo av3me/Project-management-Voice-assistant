@@ -1,3 +1,5 @@
+"use client"
+
 import { MainNav } from "@/components/layout/main-nav"
 
 export function Header() {
